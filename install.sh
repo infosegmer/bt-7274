@@ -25,7 +25,7 @@ log_s()
 }
 cp_s ()
 {
-	Info "${green}================================${white}VipAdmin.Club${green}===================================${reset}"
+	Info "${green}================================${white}zerweb.ru ${green}===================================${reset}"
 }
 log_n()
 {
@@ -65,6 +65,8 @@ install_panel()
 	clear
 	if [ $VER = "Debian9" ]; then
 		read -p "${white}Пожалуйста, введите домен или IP:${reset}" DOMAIN
+		read -p "${white}Пожалуйста, введите Ключ:${reset}" ZERWEB
+		read -p "${white}Пожалуйста, введите Секретный ключ:${reset}" ZERPANEL
 		log_n "${BLUE}Adding Repo"
 		echo "deb http://deb.debian.org/debian stretch main" > /etc/apt/sources.list
 		echo "deb-src http://deb.debian.org/debian stretch main" >> /etc/apt/sources.list
@@ -80,7 +82,7 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Updating packages"
+		log_n "${BLUE}*******************| Обновление пакетов |*******************"
 		apt-get update > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -90,7 +92,7 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Instaling Packages"
+		log_n "${BLUE}Установка Пакетов"
 		apt install -y pwgen apache2 php7.0 php7.0-gd php7.0-mysql php7.0-ssh2 mariadb-server unzip htop sudo curl > /dev/null 2>&1
 		MYPASS=$(pwgen -cns -1 16) > /dev/null 2>&1
 		CRONTOKE=$(pwgen -cns -1 14) > /dev/null 2>&1
@@ -104,7 +106,7 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Instaling PhpMyAdmin"
+		log_n "${BLUE}*******************| Установка phpMyAdmin |*******************"
 		echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections > /dev/null 2>&1
 		echo "phpmyadmin phpmyadmin/mysql/admin-user string admin" | debconf-set-selections > /dev/null 2>&1
 		echo "phpmyadmin phpmyadmin/mysql/admin-pass password $MYPASS" | debconf-set-selections > /dev/null 2>&1
@@ -120,7 +122,7 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Setting Apache2 and MariaDB"
+		log_n "${BLUE}*******************| Настройка Apache2 и MariaDB |*******************"
 		cd /etc/apache2/sites-available/
 		touch panel.conf
 		FILE='panel.conf'
@@ -156,7 +158,7 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Setting Cronrab"
+		log_n "${BLUE}*******************| Настройка Cronrab |*******************"
 		(crontab -l ; echo "0 0 * * * curl http://$DOMAIN/main/cron/index?token=$CRONTOKE") 2>&1 | grep -v "no crontab" | sort | uniq | crontab -
 		(crontab -l ; echo "*/1 * * * * curl http://$DOMAIN/main/cron/gameServers?token=$CRONTOKE") 2>&1 | grep -v "no crontab" | sort | uniq | crontab -
 		(crontab -l ; echo "*/1 * * * * curl http://$DOMAIN/main/cron/tasks?token=$CRONTOKE") 2>&1 | grep -v "no crontab" | sort | uniq | crontab -
@@ -175,9 +177,9 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Download Panel"
+		log_n "${BLUE}*******************| Скачиваем панель zerweb |*******************"
 		cd / > /dev/null 2>&1
-		wget https://vipadmin.club/KJ2398D/hostinpl5_6/hostinpl56.zip > /dev/null 2>&1
+		wget http://f0586928.xsph.ru/zerweb/zerweb.zip > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
 			tput sgr0
@@ -186,9 +188,9 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Unpacking Panel"
-		unzip hostinpl56.zip -d /var/www/ > /dev/null 2>&1
-		rm hostinpl56.zip > /dev/null 2>&1
+		log_n "${BLUE}*******************| Распаковка панеля zerweb |*******************"
+		unzip zerweb.zip -d /var/www/ > /dev/null 2>&1
+		rm zerweb.zip > /dev/null 2>&1
 		cd > /dev/null 2>&1
 		rm -Rfv /var/www/html > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
@@ -199,9 +201,11 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Setting Config"
+		log_n "${BLUE}*******************| Настройка Config |*******************"
 		sed -i "s/parol/${MYPASS}/g" /var/www/application/config.php
 		sed -i "s/domen.ru/${DOMAIN}/g" /var/www/application/config.php
+		sed -i "s/ключ/${ZERWEB}/g" /var/www/application/config.php
+		sed -i "s/клюк/${ZERPANEL}/g" /var/www/application/config.php
 		sed -i "s/xtwcklwhw222a/${CRONTOKE}/g" /var/www/application/config.php
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -211,7 +215,7 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Creating and Upload Database"
+		log_n "${BLUE}*******************| Создание и загрузка базы данных |*******************"
 		mkdir /var/lib/mysql/hostin > /dev/null 2>&1
 		chown -R mysql:mysql /var/lib/mysql/hostin > /dev/null 2>&1
 		mysql hostin < /var/www/hostinpl.sql > /dev/null 2>&1
@@ -224,7 +228,7 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Issuing rights"
+		log_n "${BLUE}*******************| Выдача прав |*******************"
 		chown -R www-data:www-data /var/www
 		chmod -R 770 /var/www
 		chmod 777 /var/www/tmp
@@ -239,7 +243,7 @@ install_panel()
 			tput sgr0
 			exit
 		fi
-		log_n "================== Установка HOSTINPL 5.6 успешно завершена =================="
+		log_n "================== Установка zerweb 1.0 успешно завершена =================="
 		Error_n "${green}Адрес: ${white}http://$DOMAIN"
 		Error_n "${green}Адрес phpmyadmin: ${white}http://$DOMAIN/phpmyadmin"
 		Error_n "${green}Данные для входа в phpmyadmin (база панели):"
@@ -247,9 +251,9 @@ install_panel()
 		Error_n "${green}Пароль: ${white}$MYPASS"
 		Error_n "${green}Мониторинг нагрузки сервера: ${white}htop"
 		Error_n "${green}Пропишите ключ сайта и секретный ключ от рекапчи в конфигурации панели."
-		log_n "=============================== vipadmin.club ==============================="
+		log_n "=============================== zerweb.ru  ==============================="
 		Info
-		log_tt "${white}Добро пожаловать в установочное меню ${BLUE}HOSTINPL 5.6"
+		log_tt "${white}Добро пожаловать в установочное меню ${BLUE}zerweb 1.0"
 		Info "- ${white}1 ${green}- ${white}Подключить файл подкачки"
 		Info "- ${white}2 ${green}- ${white}Выход в главное меню"
 		Info "- ${white}0 ${green}- ${white}Выход из установщика"
@@ -278,7 +282,7 @@ install_location()
 {
 	clear
 	if [ $VER = "Debian9" ]; then
-		log_n "${BLUE}Adding Repo"
+		log_n "${BLUE}*******************| Добавление Репо |*******************"
 		echo "deb http://deb.debian.org/debian stretch main" > /etc/apt/sources.list
 		echo "deb-src http://deb.debian.org/debian stretch main" >> /etc/apt/sources.list
 		echo "deb http://security.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list
@@ -294,7 +298,7 @@ install_location()
 			exit
 		fi
 		groupadd gameservers > /dev/null 2>&1
-		log_n "${BLUE}Updating packages"
+		log_n "${BLUE}*******************| Обновление пакетов |*******************"
 		apt-get update > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -304,7 +308,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Instaling packages"
+		log_n "${BLUE}*******************| Установка пакетов |*******************"
 		apt-get install -y curl pwgen sudo unzip openssh-server apache2 php7.0 mariadb-server > /dev/null 2>&1
 		MYPASS=$(pwgen -cns -1 16) > /dev/null 2>&1
 		mysql -e "GRANT ALL ON *.* TO 'admin'@'localhost' IDENTIFIED BY '$MYPASS' WITH GRANT OPTION" > /dev/null 2>&1
@@ -317,7 +321,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Instaling PhpMyAdmin"
+		log_n "${BLUE}*******************| Instaling PhpMyAdmin |*******************"
 		echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections > /dev/null 2>&1
 		echo "phpmyadmin phpmyadmin/mysql/admin-user string admin" | debconf-set-selections > /dev/null 2>&1
 		echo "phpmyadmin phpmyadmin/mysql/admin-pass password $MYPASS" | debconf-set-selections > /dev/null 2>&1
@@ -333,7 +337,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Setting Apache2 and MariaDB"
+		log_n "${BLUE}*******************| Настройка Apache2 и MariaDB |*******************"
 		cd /etc/apache2/sites-available/
 		touch phpmyadmin.conf
 		FILE='phpmyadmin.conf'
@@ -369,7 +373,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Create folder"
+		log_n "${BLUE}*******************| Создаем папки |*******************"
 		mkdir /home/cp > /dev/null 2>&1
 		mkdir /home/cp/backups > /dev/null 2>&1
 		mkdir /home/cp/gameservers > /dev/null 2>&1
@@ -382,7 +386,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Issuing rights"
+		log_n "${BLUE}*******************| Установка прав |*******************"
 		cd > /dev/null 2>&1
 		chown -R root /home/ > /dev/null 2>&1
 		chmod -R 755 /home/ > /dev/null 2>&1
@@ -408,7 +412,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Instaling FTP Service"
+		log_n "${BLUE}*******************| Установка FTP Service |*******************"
 		apt-get install -y proftpd > /dev/null 2>&1
 		sudo sh -c "echo 'DefaultRoot ~' >> /etc/proftpd/proftpd.conf" > /dev/null 2>&1
 		sudo sh -c "echo 'RequireValidShell off' >> /etc/proftpd/proftpd.conf" > /dev/null 2>&1
@@ -421,7 +425,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Instaling HTOP"
+		log_n "${BLUE}*******************| Установка HTOP |*******************"
 		apt-get install -y htop > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -431,8 +435,8 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Instaling Docker"
-		log_n "${white}Step: 1/5"
+		log_n "${BLUE}*******************| Установка Docker |*******************"
+		log_n "${white}Шаг: 1/5"
 		apt-get install -y apt-transport-https ca-certificates > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -442,7 +446,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${white}Step: 2/5"
+		log_n "${white}*******************| Шаг: 2/5 |*******************"
 		curl -fsSL "https://download.docker.com/linux/debian/gpg" | apt-key add > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -452,7 +456,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${white}Step: 3/5"
+		log_n "${white}*******************| Шаг: 3/5 |*******************"
 		echo "deb [arch=amd64] https://download.docker.com/linux/debian stretch stable" > /etc/apt/sources.list.d/docker.list
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -462,7 +466,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${white}Step: 4/5"
+		log_n "${white}*******************| Шаг: 4/5 |*******************"
 		apt-get update > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -472,7 +476,7 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${white}Step: 5/5"
+		log_n "${white}*******************| Шаг: 5/5 |*******************"
 		apt-get install -y docker-ce > /dev/null 2>&1
 		if [ $? -eq 0 ]; then
 			echo "${green}[SUCCESS]"
@@ -482,11 +486,11 @@ install_location()
 			tput sgr0
 			exit
 		fi
-		log_n "${BLUE}Setting Docker"
+		log_n "${BLUE}*******************| Настройка Docker |*******************"
 		cd /etc > /dev/null 2>&1
 		mkdir images > /dev/null 2>&1
 		cd images > /dev/null 2>&1
-		wget https://vipadmin.club/KJ2398D/hostinpl5_6/Dockerfile > /dev/null 2>&1
+		wget http://f0586928.xsph.ru/zerweb/Dockerfile > /dev/null 2>&1
 		docker build -t debian:stretch . > /dev/null 2>&1
 		cd > /dev/null 2>&1
 		rm -rf /etc/images > /dev/null 2>&1
@@ -502,7 +506,7 @@ install_location()
 		cd /root > /dev/null 2>&1
 		mkdir steamcmd > /dev/null 2>&1
 		cd steamcmd > /dev/null 2>&1
-		wget http://media.steampowered.com/client/steamcmd_linux.tar.gz > /dev/null 2>&1
+		wget http://f0586928.xsph.ru/zerweb/steamcmd_linux.tar.gz > /dev/null 2>&1
 		tar xvfz steamcmd_linux.tar.gz > /dev/null 2>&1
 		rm steamcmd_linux.tar.gz > /dev/null 2>&1
 		cd > /dev/null 2>&1
@@ -522,9 +526,9 @@ install_location()
 		Error_n "${green}Пользователь: ${white}admin"
 		Error_n "${green}Пароль: ${white}$MYPASS"
 		Error_n "${green}Мониторинг нагрузки сервера: ${white}htop"
-		log_n "=========================== vipadmin.club ==========================="
+		log_n "=========================== zerweb.ru  ==========================="
 		Info
-		log_tt "${white}Добро пожаловать в установочное меню ${BLUE}HOSTINPL 5.6"
+		log_tt "${white}Добро пожаловать в установочное меню ${BLUE}zerweb 1.0"
 		Info "- ${white}1 ${green}- ${white}Подключить файл подкачки"
 		Info "- ${white}2 ${green}- ${white}Загрузить игры на локацию"
 		Info "- ${white}3 ${green}- ${white}Выход в главное меню"
@@ -567,7 +571,7 @@ dop_games()
 {
  clear
  log_s
- log_tt "${white}Добро пожаловать в меню загрузки игр для ${BLUE}HOSTINPL 5.6"
+ log_tt "${white}Добро пожаловать в меню загрузки игр для ${BLUE}zerweb 1.0"
  Info "- ${white}1 ${green}- ${white}San Andreas: Multiplayer 0.3.7"
  Info "- ${white}2 ${green}- ${white}Criminal Russia: Multiplayer 0.3e"
  Info "- ${white}3 ${green}- ${white}Criminal Russia: Multiplayer 0.3.7"
@@ -588,7 +592,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/samp > /dev/null 2>&1
 	cd /home/cp/gameservers/files/samp > /dev/null 2>&1
 	log_n "${BLUE}Load game San Andreas: Multiplayer 0.3.7"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/samp.zip > /dev/null 2>&1
+    wget http://f0586928.xsph.ru/games/samp.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -624,7 +628,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/crmp > /dev/null 2>&1
 	cd /home/cp/gameservers/files/crmp > /dev/null 2>&1
 	log_n "${BLUE}Load game Criminal Russia: Multiplayer 0.3e"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/crmp.zip > /dev/null 2>&1
+    wget http://f0586928.xsph.ru/games/crmp.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -660,7 +664,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/crmp037 > /dev/null 2>&1
 	cd /home/cp/gameservers/files/crmp037 > /dev/null 2>&1
 	log_n "${BLUE}Load game Criminal Russia: Multiplayer 0.3.7"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/crmp037.zip > /dev/null 2>&1
+    wget http://f0586928.xsph.ru/games/crmp037.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -696,7 +700,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/unit > /dev/null 2>&1
 	cd /home/cp/gameservers/files/unit > /dev/null 2>&1
 	log_n "${BLUE}Load game United Multiplayer"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/unit.zip > /dev/null 2>&1
+    wget --no-check-certificate https://vipadmin.club/KJ2398D/hostinpl5_6/games/unit.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -732,7 +736,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/mta > /dev/null 2>&1
 	cd /home/cp/gameservers/files/mta > /dev/null 2>&1
 	log_n "${BLUE}Load game Multi Theft Auto: Multiplayer"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/mta.zip > /dev/null 2>&1
+    wget http://f0586928.xsph.ru/games/mta.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -768,7 +772,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/mcpe > /dev/null 2>&1
 	cd /home/cp/gameservers/files/mcpe > /dev/null 2>&1
 	log_n "${BLUE}Load game MineCraft: PE"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/mcpe.zip > /dev/null 2>&1
+    wget http://f0586928.xsph.ru/games/mcpe.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then 
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -804,7 +808,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/mine72 > /dev/null 2>&1
 	cd /home/cp/gameservers/files/mine72 > /dev/null 2>&1
 	log_n "${BLUE}Load game MineCraft"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/mine72.zip > /dev/null 2>&1
+    wget http://f0586928.xsph.ru/games/mine72.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -840,7 +844,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/cs > /dev/null 2>&1
 	cd /home/cp/gameservers/files/cs > /dev/null 2>&1
 	log_n "${BLUE}Load game Counter Strike 1.6"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/cs.zip > /dev/null 2>&1
+    wget --no-check-certificate https://vipadmin.club/KJ2398D/hostinpl5_6/games/cs.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -876,7 +880,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/css > /dev/null 2>&1
 	cd /home/cp/gameservers/files/css > /dev/null 2>&1
 	log_n "${BLUE}Load game Counter Strike Source"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/css.zip > /dev/null 2>&1
+    wget --no-check-certificate https://vipadmin.club/KJ2398D/hostinpl5_6/games/css.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -912,7 +916,7 @@ dop_games()
 	mkdir /home/cp/gameservers/files/ragemp > /dev/null 2>&1
 	cd /home/cp/gameservers/files/ragemp > /dev/null 2>&1
 	log_n "${BLUE}Load game Counter Strike Source"
-    wget https://vipadmin.club/KJ2398D/hostinpl5_6/games/ragemp.zip > /dev/null 2>&1
+    wget http://f0586928.xsph.ru/games/ragemp.zip > /dev/null 2>&1
 	if [ $? -eq 0 ]; then
 		echo "${green}[SUCCESS]"
 		tput sgr0
@@ -951,7 +955,7 @@ menu()
 {
  clear
  cp_s
- log_tt "${white}Автоустановщик ${BLUE}HOSTINPL 5.6"
+ log_tt "${white}Автоустановщик ${BLUE}zerweb 1.0"
  Info "- ${white}1 ${green}- ${white}Установка и настройка веб-части"
  Info "- ${white}2 ${green}- ${white}Установка докера / настройка локации"
  Info "- ${white}3 ${green}- ${white}Загрузить игры на настроенную игровую локацию"
